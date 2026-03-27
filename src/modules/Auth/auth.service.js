@@ -1,4 +1,5 @@
 import { User } from "../../DB/models/User.model.js";
+import { Message } from "../../DB/models/Message.model.js";
 import { sign as signJwt } from "../../utils/jwt.utils.js";
 import { MESSAGES } from "../../constants/index.js";
 
@@ -63,7 +64,28 @@ export async function updateCurrentUser(userId, updates) {
     throw error;
   }
 
-  const { email, name, phone, age } = updates;
+  const { email, name, phone, age, profileSlug } = updates;
+
+  if (typeof profileSlug !== "undefined") {
+    const slug = String(profileSlug).trim().toLowerCase();
+    if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+      const error = new Error(MESSAGES.PROFILE_SLUG_FORMAT_INVALID);
+      error.statusCode = 400;
+      throw error;
+    }
+    if (slug !== user.profileSlug) {
+      const exists = await User.findOne({
+        profileSlug: slug,
+        _id: { $ne: userId },
+      }).lean();
+      if (exists) {
+        const error = new Error(MESSAGES.PROFILE_SLUG_TAKEN);
+        error.statusCode = 400;
+        throw error;
+      }
+      user.profileSlug = slug;
+    }
+  }
 
   if (email && email.toLowerCase() !== user.email) {
     const exists = await User.findOne({ email: email.toLowerCase() });
@@ -85,6 +107,8 @@ export async function updateCurrentUser(userId, updates) {
 }
 
 export async function deleteCurrentUser(userId) {
+  await Message.deleteMany({ recipient: userId });
+
   const user = await User.findByIdAndDelete(userId);
   if (!user) {
     const error = new Error(MESSAGES.USER_NOT_FOUND);

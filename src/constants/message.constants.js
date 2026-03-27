@@ -31,4 +31,17 @@ export const MESSAGES = {
 
   // Admin
   FORBIDDEN_ADMIN: "Access denied. Admin only.",
+
+  // Profile / Saraha
+  PROFILE_SLUG_FORMAT_INVALID: "profileSlug must be lowercase letters, numbers, and single hyphens between segments",
+  PROFILE_SLUG_TAKEN: "This profile link is already taken",
+
+  // Messages
+  MESSAGE_CONTENT_REQUIRED: "Message content is required",
+  MESSAGE_TOO_LONG: "Message is too long",
+  RECIPIENT_NOT_FOUND: "No user found with this profile link",
+  MESSAGE_NOT_FOUND: "Message not found",
+  MESSAGE_DELETED: "Message deleted",
+  MESSAGE_MARKED_READ: "Message marked as read",
+  MESSAGE_SENT: "Your message was sent anonymously",
 };

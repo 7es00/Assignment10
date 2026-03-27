@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { ROLES } from "../../constants/role.constants.js";
 import { MESSAGES } from "../../constants/index.js";
 import { hash, compare } from "../../utils/index.js";
+import { slugifyName, randomSlugSuffix } from "../../utils/slug.utils.js";
 
 const { Schema } = mongoose;
 
@@ -42,6 +43,14 @@ const userSchema = new Schema(
       enum: Object.values(ROLES),
       default: ROLES.USER,
     },
+    profileSlug: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+      match: [/^[a-z0-9]+(-[a-z0-9]+)*$/, MESSAGES.PROFILE_SLUG_FORMAT_INVALID],
+    },
   },
   {
     timestamps: true,
@@ -49,6 +58,21 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function handleSecureFields() {
+  if (!this.profileSlug) {
+    const base = slugifyName(this.name);
+    const Model = this.constructor;
+    let slug = `${base}-${randomSlugSuffix()}`;
+    for (let i = 0; i < 12; i++) {
+      const exists = await Model.findOne({
+        profileSlug: slug,
+        _id: { $ne: this._id },
+      }).lean();
+      if (!exists) break;
+      slug = `${base}-${randomSlugSuffix()}`;
+    }
+    this.profileSlug = slug;
+  }
+
   if (this.isModified("password")) {
     this.password = await hash(this.password);
   }
