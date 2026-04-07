@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
@@ -9,9 +11,13 @@ import { MESSAGES } from "./constants/index.js";
 
 const app = express();
 
+const uploadsRoot = path.join(process.cwd(), "uploads");
+fs.mkdirSync(path.join(uploadsRoot, "profiles"), { recursive: true });
+
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+app.use("/uploads", express.static(uploadsRoot));
 
 app.use("/", appRouter);
 

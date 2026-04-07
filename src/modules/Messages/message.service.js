@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Message } from "../../DB/models/Message.model.js";
 import { User } from "../../DB/models/User.model.js";
 import { AppError } from "../../utils/index.js";
@@ -24,12 +25,57 @@ export async function sendAnonymousMessage(profileSlug, content) {
   const message = await Message.create({
     recipient: recipient._id,
     content: content.trim(),
+    isAnonymous: true,
+    sender: null,
   });
 
   return {
     id: message._id.toString(),
     createdAt: message.createdAt,
   };
+}
+
+export async function sendPublicMessage(profileSlug, senderId, content) {
+  const slug = String(profileSlug || "").trim().toLowerCase();
+  const recipient = await User.findOne({ profileSlug: slug }).select("_id").lean();
+  if (!recipient) {
+    throw new AppError(MESSAGES.RECIPIENT_NOT_FOUND, 404);
+  }
+
+  const message = await Message.create({
+    recipient: recipient._id,
+    content: content.trim(),
+    isAnonymous: false,
+    sender: senderId,
+  });
+
+  return {
+    id: message._id.toString(),
+    createdAt: message.createdAt,
+  };
+}
+
+export async function getMessageByIdForRecipient(messageId, userId) {
+  if (!mongoose.isValidObjectId(messageId)) {
+    throw new AppError(MESSAGES.MESSAGE_NOT_FOUND, 404);
+  }
+
+  const message = await Message.findOne({
+    _id: messageId,
+    recipient: userId,
+  })
+    .populate("sender", "name profileSlug profilePic")
+    .lean();
+
+  if (!message) {
+    throw new AppError(MESSAGES.MESSAGE_NOT_FOUND, 404);
+  }
+
+  if (message.isAnonymous) {
+    message.sender = null;
+  }
+
+  return message;
 }
 
 export async function listMessagesForUser(userId, page = 1, limit = 20) {

@@ -1,6 +1,7 @@
 import { Router } from "express";
 
-import { authRouter } from "./modules/Auth/index.js";
+import { authRouter, authApiRouter } from "./modules/Auth/index.js";
+import { userRouter } from "./modules/User/index.js";
 import { adminRouter } from "./modules/Admin/index.js";
 import { messagesRouter } from "./modules/Messages/index.js";
 import { MESSAGES } from "./constants/index.js";
@@ -14,6 +15,8 @@ appRouter.get("/", (req, res) => {
   });
 });
 
+appRouter.use("/auth", authApiRouter);
+appRouter.use("/user", userRouter);
 appRouter.use("/users", authRouter);
 appRouter.use("/admin", adminRouter);
 appRouter.use("/messages", messagesRouter);

@@ -35,6 +35,9 @@ export const MESSAGES = {
   // Profile / Saraha
   PROFILE_SLUG_FORMAT_INVALID: "profileSlug must be lowercase letters, numbers, and single hyphens between segments",
   PROFILE_SLUG_TAKEN: "This profile link is already taken",
+  PROFILE_PIC_REQUIRED: "Profile image file is required (field name: profilePic)",
+  PROFILE_PIC_UPDATED: "Profile picture updated",
+  PROFILE_PIC_INVALID_TYPE: "Only JPEG, PNG, WebP, or GIF images are allowed",
 
   // Messages
   MESSAGE_CONTENT_REQUIRED: "Message content is required",
@@ -44,4 +47,22 @@ export const MESSAGES = {
   MESSAGE_DELETED: "Message deleted",
   MESSAGE_MARKED_READ: "Message marked as read",
   MESSAGE_SENT: "Your message was sent anonymously",
+  MESSAGE_SENT_PUBLIC: "Your message was sent",
+
+  // Tokens / session
+  REFRESH_TOKEN_MISSING: "Refresh token is missing",
+  REFRESH_TOKEN_INVALID: "Invalid or expired refresh token",
+  LOGOUT_SUCCESS: "Logged out successfully",
+  LOGOUT_ALL_SUCCESS: "Logged out from all devices",
+  TOKEN_REFRESHED: "Tokens refreshed",
+
+  // OTP / verify
+  EMAIL_OTP_REQUIRED: "email and otp are required",
+  EMAIL_REQUIRED: "email is required",
+  ACCOUNT_ALREADY_VERIFIED: "Account is already verified",
+  OTP_NOT_FOUND: "No verification code on file; request a new one",
+  OTP_EXPIRED: "Verification code has expired",
+  OTP_INVALID: "Invalid verification code",
+  OTP_RESENT: "A new verification code has been sent",
+  ACCOUNT_VERIFIED: "Account verified successfully",
 };

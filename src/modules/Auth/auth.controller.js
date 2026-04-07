@@ -5,6 +5,16 @@ import {
   deleteCurrentUser,
   getCurrentUser,
 } from "./auth.service.js";
+import { verifyAccountWithOtp, resendOtp } from "./otp.service.js";
+import {
+  logoutCurrentSession,
+  logoutAllDevices,
+  refreshWithToken,
+} from "./session.service.js";
+import {
+  getAccessTokenFromRequest,
+  getRefreshTokenFromRequest,
+} from "./token.service.js";
 import { MESSAGES } from "../../constants/index.js";
 
 export async function handleSignup(req, res, next) {
@@ -47,6 +57,79 @@ export async function handleLogin(req, res, next) {
       success: true,
       message: MESSAGES.LOGIN_SUCCESS,
       data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const handleSignin = handleLogin;
+
+export async function handleRefreshToken(req, res, next) {
+  try {
+    const refreshRaw = getRefreshTokenFromRequest(req);
+    const result = await refreshWithToken(refreshRaw);
+
+    return res.status(200).json({
+      success: true,
+      message: MESSAGES.TOKEN_REFRESHED,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleVerifyAccount(req, res, next) {
+  try {
+    const { email, otp } = req.body || {};
+    const user = await verifyAccountWithOtp({ email, otp });
+
+    return res.status(200).json({
+      success: true,
+      message: MESSAGES.ACCOUNT_VERIFIED,
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleResendOtp(req, res, next) {
+  try {
+    const { email } = req.body || {};
+    const result = await resendOtp(email);
+
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleLogout(req, res, next) {
+  try {
+    const access = getAccessTokenFromRequest(req);
+    await logoutCurrentSession(access);
+
+    return res.status(200).json({
+      success: true,
+      message: MESSAGES.LOGOUT_SUCCESS,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleLogoutAllDevices(req, res, next) {
+  try {
+    await logoutAllDevices(req.user.userId);
+
+    return res.status(200).json({
+      success: true,
+      message: MESSAGES.LOGOUT_ALL_SUCCESS,
     });
   } catch (error) {
     next(error);
@@ -96,4 +179,3 @@ export async function handleGetCurrentUser(req, res, next) {
     next(error);
   }
 }
-

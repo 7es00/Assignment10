@@ -19,6 +19,9 @@ const config = {
   auth: {
     jwtSecret: process.env.JWT_SECRET || "7dbf6cf937baa3b5b12071645755e4f6",
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
+    jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+    otpSecret: process.env.OTP_SECRET || "dev_otp_hmac_secret_change_me",
+    exposeOtpInDev: process.env.EXPOSE_OTP === "true",
   },
   encryption: {
     phoneKey: process.env.PHONE_SECRET || "dev_phone_secret",

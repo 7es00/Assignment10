@@ -1,10 +1,19 @@
 import { User } from "../../DB/models/User.model.js";
 import { Message } from "../../DB/models/Message.model.js";
-import { sign as signJwt } from "../../utils/jwt.utils.js";
+import { RefreshToken } from "../../DB/models/RefreshToken.model.js";
+import { RevokedToken } from "../../DB/models/RevokedToken.model.js";
 import { MESSAGES } from "../../constants/index.js";
+import config from "../../../config/Config.service.js";
+import { issueTokenPair } from "./token.service.js";
+import { setSignupOtp } from "./otp.service.js";
 
-function generateToken(userId) {
-  return signJwt({ userId });
+function buildAuthPayload(user, tokens) {
+  return {
+    token: tokens.accessToken,
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    user: user.toSafeObject(),
+  };
 }
 
 export async function signupUser({ name, email, password, phone, age }) {
@@ -23,14 +32,15 @@ export async function signupUser({ name, email, password, phone, age }) {
     age,
   });
 
+  const otpCode = setSignupOtp(user, email);
   await user.save();
 
-  const token = generateToken(user._id.toString());
-
-  return {
-    token,
-    user: user.toSafeObject(),
-  };
+  const tokens = await issueTokenPair(user);
+  const data = buildAuthPayload(user, tokens);
+  if (config.auth.exposeOtpInDev) {
+    data.devOtp = otpCode;
+  }
+  return data;
 }
 
 export async function loginUser({ email, password }) {
@@ -48,12 +58,8 @@ export async function loginUser({ email, password }) {
     throw error;
   }
 
-  const token = generateToken(user._id.toString());
-
-  return {
-    token,
-    user: user.toSafeObject(),
-  };
+  const tokens = await issueTokenPair(user);
+  return buildAuthPayload(user, tokens);
 }
 
 export async function updateCurrentUser(userId, updates) {
@@ -107,7 +113,11 @@ export async function updateCurrentUser(userId, updates) {
 }
 
 export async function deleteCurrentUser(userId) {
-  await Message.deleteMany({ recipient: userId });
+  await Promise.all([
+    Message.deleteMany({ recipient: userId }),
+    RefreshToken.deleteMany({ userId }),
+    RevokedToken.deleteMany({ userId }),
+  ]);
 
   const user = await User.findByIdAndDelete(userId);
   if (!user) {
@@ -128,4 +138,3 @@ export async function getCurrentUser(userId) {
   }
   return user.toSafeObject();
 }
-

@@ -51,6 +51,28 @@ const userSchema = new Schema(
       lowercase: true,
       match: [/^[a-z0-9]+(-[a-z0-9]+)*$/, MESSAGES.PROFILE_SLUG_FORMAT_INVALID],
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otpHash: {
+      type: String,
+      select: false,
+    },
+    otpExpiresAt: {
+      type: Date,
+      select: false,
+    },
+    profilePic: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -90,6 +112,8 @@ userSchema.methods.toSafeObject = function toSafeObject() {
   const obj = this.toObject({ versionKey: false });
   delete obj.password;
   delete obj.phone; // phone is hashed, not reversible
+  delete obj.otpHash;
+  delete obj.otpExpiresAt;
   return obj;
 };
 
